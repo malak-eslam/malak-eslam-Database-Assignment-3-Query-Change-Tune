@@ -1,2 +1,5 @@
 # malak-eslam-Database-Assignment-3-Query-Change-Tune
 Assignment repo for assignment/1-13 (Database-Assignment-3-Query-Change-Tune)
+
+Name : malak eslam
+Group : 2 (Monday&Thurday) 
