@@ -160,3 +160,102 @@ VALUES
     0,
     0
 );
+
+
+--Task 3
+
+--3.1
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.sequences
+    WHERE name = 'InvoiceNumberSequence'
+      AND SCHEMA_NAME(schema_id) = 'finance'
+)
+BEGIN
+    CREATE SEQUENCE finance.InvoiceNumberSequence
+    START WITH 1
+    INCREMENT BY 1;
+END;
+
+--3.2
+DECLARE @Number BIGINT;
+
+SET @Number = NEXT VALUE FOR finance.InvoiceNumberSequence;
+
+SELECT CONCAT(
+              'LAB-INV-2026-',
+               FORMAT(@Number, '000000')
+             ) AS InvoiceNumber;
+
+
+--3.3
+------------------------
+SELECT TOP 5 Id, UserId
+FROM [identity].[StudentProfiles];
+
+SELECT Id, Name, AcademicYear, TermCode
+FROM [delivery].[AcademicTerms];
+
+SELECT Id, Name
+FROM [delivery].[AcademicTerms]
+WHERE Name = 'Fall 2027';
+
+-------------------------
+GO
+DECLARE @Number BIGINT;
+
+DECLARE @InvoiceNumber VARCHAR(30);
+
+BEGIN TRANSACTION;
+
+SET @Number = NEXT VALUE FOR finance.InvoiceNumberSequence;
+
+SET @InvoiceNumber = CONCAT(
+    'LAB-INV-2026-',
+    FORMAT(@Number, '000000')
+);
+
+
+INSERT INTO finance.Invoices
+(
+    InvoiceNumber,
+    StudentId,
+    TermId,
+    CurrencyCode,
+    DueAtUtc,
+    IssuedAtUtc,
+    TotalAmount,
+    PaidAmount,
+    CreatedAtUtc,
+    Status
+)
+VALUES
+(
+    @InvoiceNumber,
+    304,
+    12,
+    'EGP',
+    DATEADD(DAY, 30, SYSUTCDATETIME()),
+    SYSUTCDATETIME(),
+    4500,
+    0,
+    SYSUTCDATETIME(),
+    1
+);
+
+SELECT * FROM finance.Invoices
+WHERE InvoiceNumber = @InvoiceNumber;
+
+
+ROLLBACK TRANSACTION;
+
+
+SELECT CONCAT(
+              'LAB-INV-2026-',
+               FORMAT(NEXT VALUE FOR finance.InvoiceNumberSequence, '000000')
+              ) AS NextInvoiceNumber;
+
+
+GO
