@@ -56,3 +56,107 @@ ORDER BY
     RemainingAmount DESC;
 
 
+-- Task 2
+
+-- 2.1
+
+INSERT INTO [academic].[Departments]
+    (Code, Name)
+VALUES
+    ('DSAI', 'Data Science & Artificial Intelligence');
+
+
+SELECT *
+FROM [academic].[Departments]
+WHERE Code = 'DSAI';
+
+
+--2.2
+
+INSERT INTO [academic].[Courses]
+           (DepartmentId, Title, Code, CreditHours, PassingScore)
+VALUES (
+         ( SELECT Id
+		   FROM [academic].[Departments]
+		   WHERE Code = 'DSAI' ),
+
+        'Introduction to Data Analysis' , 
+		'DSAI-101' ,
+		 3 , 
+		 60
+		 )
+
+
+SELECT *
+FROM [academic].[Departments]
+WHERE Code = 'DSAI';
+
+SELECT *
+FROM [academic].[Courses]
+WHERE Code = 'DSAI-101';
+
+--3.2
+INSERT INTO [delivery].[AcademicTerms]
+(
+    AcademicYear,
+    TermCode,
+    Name,
+    StartDate,
+    EndDate,
+    RegistrationStartDate,
+    RegistrationEndDate,
+    Status
+)
+VALUES
+(
+    2027,
+    'Summer',
+    'Summer 2027',
+    '2027-06-15',
+    '2027-08-31',
+    '2027-05-01',
+    '2027-06-10',
+    4
+);
+
+SELECT *
+FROM [delivery].[AcademicTerms]
+WHERE TermCode = 'Summer';
+
+--4.2
+INSERT INTO [communication].[Announcements]
+(
+    SectionId,
+    Title,
+    Body,
+    PublishedAtUtc,
+    CreatedByUserId,
+    Status
+)
+VALUES
+(
+    NULL,
+    'Summer 2027 Registration',
+    'Registration for Summer 2027 opens on May 1, 2027.',
+    '2027-05-01',
+    6,
+    1
+);
+
+--5.2
+INSERT INTO [identity].[Roles]
+(
+    Code,
+    Name,
+    Description,
+    IsDeleted,
+    IsSystem
+)
+VALUES
+(
+    'TA',
+    'Teaching Assistant',
+    'Role for Teaching Assistants',
+    0,
+    0
+);
