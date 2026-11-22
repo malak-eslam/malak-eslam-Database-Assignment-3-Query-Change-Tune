@@ -259,3 +259,31 @@ SELECT CONCAT(
 
 
 GO
+
+
+-- Task 4
+INSERT INTO delivery.Sections
+(
+    CourseId,
+    TermId,
+    SectionCode,
+    Capacity,
+    Location,
+    CreatedAtUtc
+)
+
+SELECT
+    CourseId,
+    13,
+    SectionCode,
+    Capacity,
+    Location,
+    SYSUTCDATETIME()
+FROM delivery.Sections
+WHERE TermId = 12;
+
+SELECT *
+FROM delivery.Sections
+WHERE TermId = 13;
+
+
