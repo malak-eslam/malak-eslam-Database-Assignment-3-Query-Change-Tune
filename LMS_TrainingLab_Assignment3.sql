@@ -287,3 +287,277 @@ FROM delivery.Sections
 WHERE TermId = 13;
 
 
+-- Task 5
+
+-- 5.1
+SELECT
+    Code AS [Course Code],
+    Title AS [Course Title],
+    CreditHours AS [Credits]
+FROM academic.Courses
+ORDER BY
+    CreditHours DESC,
+    Title ASC;
+
+-- 5.2 
+SELECT TOP 5 *
+FROM [identity].[StudentProfiles]
+ORDER BY NEWID();
+
+
+--5.3
+SELECT *
+FROM [identity].[Users]
+WHERE DATALENGTH(Email) <> DATALENGTH(LTRIM(RTRIM(Email)));
+
+
+--5.4
+SELECT *
+FROM [identity].[Users]
+WHERE Email <> LOWER(Email);
+
+--5.5
+SELECT *
+FROM [identity].[Users]
+WHERE Email NOT LIKE '%@%'
+   OR Email LIKE '@%'
+   OR Email NOT LIKE '%@%.%';
+
+
+--5.6
+SELECT DISTINCT
+    SUBSTRING(
+              Email,
+              CHARINDEX('@', Email) + 1,
+              LEN(Email)
+            ) AS EmailProvider
+FROM [identity].[Users]
+WHERE Email LIKE '%@%'
+ORDER BY EmailProvider;
+
+
+SELECT DISTINCT
+          RIGHT(Email, LEN(Email) - CHARINDEX('@', Email)) AS EmailProvider
+FROM [identity].[Users]
+WHERE Email LIKE '%@%'
+ORDER BY EmailProvider;
+
+--5.7
+SELECT *
+FROM [identity].[Users]
+ORDER BY
+    LastLoginAtUtc DESC;
+
+
+--5.8
+SELECT *
+FROM [finance].[Payments]
+WHERE PaidAtUtc >= '2026-10-01'
+  AND PaidAtUtc < '2026-11-01';
+
+
+--5.9
+SELECT
+    *,
+      PaidAtUtc AT TIME ZONE 'UTC'
+                AT TIME ZONE 'Egypt Standard Time' AS CairoPaymentTime
+FROM [finance].[Payments]
+WHERE CAST(
+    PaidAtUtc AT TIME ZONE 'UTC'
+              AT TIME ZONE 'Egypt Standard Time'
+    AS TIME
+) >= '00:00:00'
+AND CAST(
+    PaidAtUtc AT TIME ZONE 'UTC'
+              AT TIME ZONE 'Egypt Standard Time'
+    AS TIME
+) < '05:00:00';
+
+
+--5.10
+SELECT *
+FROM [attendance].[AttendanceSessions]
+WHERE DATENAME(WEEKDAY, SessionDate) = 'Friday';
+
+
+--5.11
+SELECT *
+FROM [identity].[Users]
+WHERE PhoneNumber LIKE '010%'
+   OR PhoneNumber LIKE '011%'
+   OR PhoneNumber LIKE '012%'
+   OR PhoneNumber LIKE '015%';
+
+
+--5.12
+SELECT
+    PhoneNumber,
+    CONCAT(
+        LEFT(PhoneNumber, 3),
+        REPLICATE('*', LEN(PhoneNumber) - 5),
+        RIGHT(PhoneNumber, 2)
+    ) AS MaskedPhone
+FROM [identity].[Users];
+
+--5.13
+SELECT
+    InvoiceNumber,
+    TRY_CAST(
+        RIGHT(
+            InvoiceNumber,
+            CHARINDEX('-', REVERSE(InvoiceNumber)) - 1
+        ) AS INT
+    ) AS RunningNumber
+FROM [finance].[Invoices]
+WHERE TRY_CAST(
+    RIGHT(
+        InvoiceNumber,
+        CHARINDEX('-', REVERSE(InvoiceNumber)) - 1
+    ) AS INT
+) IS NOT NULL
+ORDER BY RunningNumber;
+
+
+--5.14
+SELECT
+    Title,
+    CASE
+        WHEN EstimatedMinutes IS NULL THEN 'Not set'
+        ELSE CONCAT(
+            EstimatedMinutes / 60, ' h ',
+            EstimatedMinutes % 60, ' min'
+        )
+    END AS LessonLength
+FROM [content].[Lessons];
+
+
+
+--5.15
+SELECT *
+FROM [communication].[Announcements]
+WHERE Body LIKE '%[%]%';
+
+
+--5.16
+SELECT TOP 5 WITH TIES
+    InvoiceNumber,
+    TotalAmount
+FROM [finance].[Invoices]
+ORDER BY TotalAmount DESC;
+
+
+--5.17
+SELECT TOP 10 PERCENT
+    Id,
+    Amount,
+    PaidAtUtc
+FROM [finance].[Payments]
+ORDER BY Amount DESC;
+
+--5.18
+SELECT *
+FROM [delivery].[Sections]
+WHERE Location <> 'Hall A'
+   OR Location IS NULL;
+
+
+--5.19
+SELECT
+    InvoiceNumber,
+    TotalAmount,
+    PaidAmount,
+    TotalAmount - PaidAmount AS RemainingAmount,
+
+    CASE
+        WHEN PaidAmount = 0 THEN 'Not Paid'
+        ELSE 'Partially Paid'
+    END AS PaymentStatus,
+
+    CASE
+        WHEN DueAtUtc < SYSUTCDATETIME() THEN 'Overdue'
+        ELSE 'Not Overdue'
+    END AS OverdueStatus,
+
+    CAST(
+        PaidAmount * 100.0 / NULLIF(TotalAmount, 0)
+        AS DECIMAL(5,1)
+    ) AS PaidPercentage
+
+FROM [finance].[Invoices]
+
+WHERE PaidAmount < TotalAmount
+
+ORDER BY RemainingAmount DESC;
+
+
+--5.20
+SELECT *
+FROM [identity].[Users]
+ORDER BY CreatedAtUtc DESC
+OFFSET 40 ROWS
+FETCH NEXT 20 ROWS ONLY;
+
+--5.21
+DECLARE @LastSeenId BIGINT = 500000;
+
+SELECT TOP (50) *
+FROM [operations].[AuditLogs]
+WHERE Id > @LastSeenId
+ORDER BY Id ASC;
+
+
+--5.22
+SELECT TOP 10 *
+FROM [finance].[Payments];
+
+-- The first query does not guarantee the latest 10 payments because it has no ORDER BY
+-- the corrected query uses PaidAtUtc DESC.
+
+SELECT TOP 10 *
+FROM [finance].[Payments]
+ORDER BY PaidAtUtc DESC;
+
+
+--5.23
+SELECT TOP 10
+    UPPER(LTRIM(RTRIM(Title))) AS LessonTitle,
+
+    LEN(LTRIM(RTRIM(Title))) AS TitleLength,
+
+    EstimatedMinutes,
+
+    CASE
+        WHEN EstimatedMinutes IS NULL THEN 'Not set'
+        WHEN EstimatedMinutes <= 15 THEN 'Quick'
+        WHEN EstimatedMinutes <= 45 THEN 'Standard'
+        ELSE 'Long'
+    END AS DurationCategory
+
+FROM [content].[Lessons]
+
+WHERE IsPublished = 1
+  AND LEN(LTRIM(RTRIM(Title))) > 40
+
+ORDER BY TitleLength DESC;
+
+
+--5.24
+SELECT DISTINCT TOP 12
+    FORMAT(DueAtUtc, 'yyyy-MM') AS DueMonth,
+    CurrencyCode,
+
+    CASE
+        WHEN PaidAmount = 0 THEN 'Not Paid'
+        ELSE 'Partially Paid'
+    END AS PaymentState
+
+FROM [finance].[Invoices]
+
+WHERE DueAtUtc < SYSUTCDATETIME()
+  AND PaidAmount < TotalAmount
+
+ORDER BY DueMonth DESC;
+
+
+
+
