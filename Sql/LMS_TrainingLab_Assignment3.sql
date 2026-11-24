@@ -713,3 +713,117 @@ WHERE SUBSTRING(LastName, 1, 3) = N'Abd';
 SELECT Id, FirstName, LastName
 FROM [identity].[Users]
 WHERE LastName LIKE N'Abd%';
+
+
+-- Task 8
+CREATE TABLE dbo.SortSpillDemo
+(
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Category INT,
+    SortValue VARCHAR(200),
+    Payload VARCHAR(1000)
+);
+
+ ;WITH Numbers AS
+(
+    SELECT TOP (50000)
+        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS Num
+    FROM sys.all_objects A
+    CROSS JOIN sys.all_objects B
+)
+INSERT INTO dbo.SortSpillDemo (Category, SortValue, Payload)
+SELECT
+    Num % 10,
+    CONCAT('Value-', Num),
+    REPLICATE('X', 500)
+FROM Numbers;
+
+SELECT COUNT(*) AS TotalRows
+FROM dbo.SortSpillDemo;
+
+
+SELECT *
+FROM dbo.SortSpillDemo;
+
+CREATE NONCLUSTERED INDEX IX_SortSpillDemo_Category
+ON dbo.SortSpillDemo(Category);
+
+
+
+SELECT Category, COUNT(*) AS RowsCount
+FROM dbo.SortSpillDemo
+GROUP BY Category
+ORDER BY Category;
+
+
+SELECT COUNT(*) AS AvailableRows
+FROM sys.all_objects A
+CROSS JOIN sys.all_objects B;
+
+;WITH Numbers AS
+(
+    SELECT TOP (100000)
+        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS Num
+    FROM sys.all_objects A
+    CROSS JOIN sys.all_objects B
+)
+INSERT INTO dbo.SortSpillDemo (Category, SortValue, Payload)
+SELECT
+    1,
+    CONCAT('Extra-', Num),
+    REPLICATE('Y', 500)
+FROM Numbers;
+
+SELECT COUNT(*) AS TotalRows
+FROM dbo.SortSpillDemo;
+
+DBCC SHOW_STATISTICS
+(
+    'dbo.SortSpillDemo',
+    'IX_SortSpillDemo_Category'
+)
+WITH HISTOGRAM;
+
+SELECT *
+FROM dbo.SortSpillDemo
+WHERE Category = 1
+ORDER BY SortValue DESC;
+
+DELETE FROM dbo.SortSpillDemo
+WHERE SortValue LIKE 'Extra-%';
+
+SELECT COUNT(*) AS TotalRows
+FROM dbo.SortSpillDemo;
+
+UPDATE STATISTICS dbo.SortSpillDemo
+IX_SortSpillDemo_Category WITH FULLSCAN;
+
+;WITH Numbers AS
+(
+    SELECT TOP (100000)
+        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS Num
+    FROM sys.all_objects A
+    CROSS JOIN sys.all_objects B
+)
+INSERT INTO dbo.SortSpillDemo (Category, SortValue, Payload)
+SELECT
+    1,
+    CONCAT('Extra-', Num),
+    REPLICATE('Y', 500)
+FROM Numbers;
+
+ALTER DATABASE LmsTrainingLab
+SET AUTO_UPDATE_STATISTICS OFF;
+
+SELECT *
+FROM dbo.SortSpillDemo
+WHERE Category = 1
+ORDER BY SortValue DESC;
+
+UPDATE STATISTICS dbo.SortSpillDemo
+IX_SortSpillDemo_Category WITH FULLSCAN;
+
+SELECT *
+FROM dbo.SortSpillDemo
+WHERE Category = 1
+ORDER BY SortValue DESC;
