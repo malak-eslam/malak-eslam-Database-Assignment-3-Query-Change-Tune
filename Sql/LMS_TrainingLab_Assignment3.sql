@@ -827,3 +827,10 @@ SELECT *
 FROM dbo.SortSpillDemo
 WHERE Category = 1
 ORDER BY SortValue DESC;
+
+--Task 9
+SELECT DISTINCT Payload
+FROM dbo.SortSpillDemo;
+
+SELECT DISTINCT Id
+FROM dbo.SortSpillDemo;
