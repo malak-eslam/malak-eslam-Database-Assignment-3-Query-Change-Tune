@@ -834,3 +834,71 @@ FROM dbo.SortSpillDemo;
 
 SELECT DISTINCT Id
 FROM dbo.SortSpillDemo;
+
+-- Task 11
+
+--11.1
+UPDATE c
+SET PassingScore = 65
+FROM academic.Courses AS c
+INNER JOIN academic.Departments AS d
+ON c.DepartmentId = d.Id
+WHERE d.Code = 'DSAI' ;
+
+--11.2
+UPDATE e
+SET FinalGrade =
+       CASE 
+	       WHEN FinalScore >= 90 THEN 'A'
+	       WHEN FinalScore >= 80 THEN 'B'
+	       WHEN FinalScore >= 70 THEN 'C'
+	       WHEN FinalScore >= 60 THEN 'D'
+		   ELSE 'F'
+	  END  
+FROM delivery.Enrollments AS e
+WHERE CompletedAtUtc <> NULL
+  AND FinalScore <> NULL;
+
+--11.3
+
+DELETE FROM [identity].[UserRoles]
+WHERE RoleId = 7;
+
+DELETE FROM [identity].[Roles]
+WHERE Id = 7;
+
+--11.4
+
+SELECT TOP (0)
+    InvoiceId,
+    PaymentMethodId,
+    Amount,
+    CurrencyCode,
+    ExternalReference,
+    PaidAtUtc,
+    CreatedByUserId,
+    CreatedAtUtc,
+    Kind,
+    Status
+INTO finance.PaymentStaging
+FROM finance.Payments;
+
+INSERT INTO finance.PaymentStaging
+SELECT TOP (3)
+    InvoiceId,
+    PaymentMethodId,
+    Amount,
+    CurrencyCode,
+    ExternalReference,
+    PaidAtUtc,
+    CreatedByUserId,
+    CreatedAtUtc,
+    Kind,
+    Status
+FROM finance.Payments;
+
+TRUNCATE TABLE finance.PaymentStaging;
+
+--11.5
+DROP TABLE dbo.SortSpillDemo
+
