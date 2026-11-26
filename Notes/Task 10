@@ -1,0 +1,4 @@
+- INT: Smaller and faster, suitable for IDs in a single centralized database.
+- GUID: Globally unique and useful in distributed systems where multiple servers generate IDs independently.
+- Trade-off: GUID requires more storage and can make indexes larger.
+- Recommendation: Use INT for centralized systems and GUID for distributed systems.
