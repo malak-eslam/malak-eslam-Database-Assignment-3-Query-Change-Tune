@@ -902,3 +902,72 @@ TRUNCATE TABLE finance.PaymentStaging;
 --11.5
 DROP TABLE dbo.SortSpillDemo
 
+
+--Task 12
+
+--12.1
+CREATE TABLE CoursePassingMarkHistory
+(
+    CourseId INT,
+    OldPassingScore DECIMAL(5,2),
+    NewPassingScore DECIMAL(5,2),
+    ChangedAt DATETIME2,
+    ChangedBy NVARCHAR(128)
+);
+
+UPDATE c
+SET PassingScore = 60
+OUTPUT 
+     INSERTED.Id,
+    DELETED.PassingScore,
+    INSERTED.PassingScore,
+    SYSUTCDATETIME(),
+    SUSER_SNAME()
+INTO dbo.CoursePassingMarkHistory
+(
+    CourseId,
+    OldPassingScore,
+    NewPassingScore,
+    ChangedAt,
+    ChangedBy
+)
+FROM academic.Courses AS c
+INNER JOIN academic.Departments AS d
+    ON c.DepartmentId = d.Id
+WHERE d.Code = 'DSAI';
+
+--12.2
+SELECT TOP (0) *
+INTO communication.AnnouncementsArchive
+FROM communication.Announcements;
+
+SET IDENTITY_INSERT communication.AnnouncementsArchive ON;
+
+DELETE FROM communication.Announcements
+OUTPUT
+    DELETED.Id,
+    DELETED.SectionId,
+    DELETED.Title,
+    DELETED.Body,
+    DELETED.PublishedAtUtc,
+    DELETED.ExpiresAtUtc,
+    DELETED.CreatedByUserId,
+    DELETED.CreatedAtUtc,
+    DELETED.UpdatedAtUtc,
+    DELETED.Status
+INTO communication.AnnouncementsArchive
+(
+    Id,
+    SectionId,
+    Title,
+    Body,
+    PublishedAtUtc,
+    ExpiresAtUtc,
+    CreatedByUserId,
+    CreatedAtUtc,
+    UpdatedAtUtc,
+    Status
+)
+WHERE ExpiresAtUtc < DATEADD(MONTH, -6, SYSUTCDATETIME());
+
+SET IDENTITY_INSERT communication.AnnouncementsArchive OFF;
