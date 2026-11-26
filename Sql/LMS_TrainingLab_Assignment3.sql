@@ -971,3 +971,51 @@ INTO communication.AnnouncementsArchive
 WHERE ExpiresAtUtc < DATEADD(MONTH, -6, SYSUTCDATETIME());
 
 SET IDENTITY_INSERT communication.AnnouncementsArchive OFF;
+
+-- Task 13
+CREATE TABLE WebsiteCatalog
+(
+    CourseId INT PRIMARY KEY,
+    Code VARCHAR(30) NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    CreditHours DECIMAL(4,2) NOT NULL,
+    IsVisible BIT NOT NULL
+);
+
+INSERT INTO WebsiteCatalog (CourseId, Code, Title, CreditHours, IsVisible)
+SELECT Id, Code, Title, CreditHours, 1
+FROM academic.Courses
+WHERE IsActive = 1;
+
+MERGE WebsiteCatalog AS Target
+USING academic.Courses AS Source
+ON Target.CourseId = Source.Id
+
+WHEN MATCHED AND
+(
+    Target.Code <> Source.Code
+    OR Target.Title <> Source.Title
+    OR Target.CreditHours <> Source.CreditHours
+)
+THEN
+    UPDATE SET
+        Target.Code = Source.Code,
+        Target.Title = Source.Title,
+        Target.CreditHours = Source.CreditHours,
+        Target.IsVisible = Source.IsActive
+
+WHEN NOT MATCHED BY TARGET AND Source.IsActive = 1
+THEN
+    INSERT (CourseId, Code, Title, CreditHours, IsVisible)
+    VALUES (Source.Id, Source.Code, Source.Title,
+            Source.CreditHours, 1)
+
+WHEN MATCHED AND Source.IsActive = 0 AND Target.IsVisible = 1
+THEN
+    UPDATE SET Target.IsVisible = 0
+
+OUTPUT
+    $action ,
+    COALESCE(INSERTED.CourseId, DELETED.CourseId) AS CourseId,
+    DELETED.Title AS OldTitle,
+    INSERTED.Title AS NewTitle;
